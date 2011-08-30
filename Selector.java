@@ -8,7 +8,7 @@ public class Selector {
     private final Method method;
 
     public Selector(Row wildcard, Method method) {
-        this.tableName = wildcard.getClass().toString();
+        this.tableName = wildcard.getClass().toString(); // TODO: This will return the useless name of the proxy
         this.columnName = method.getName().substring(3);
         this.wildcard = wildcard;
         this.method = method;
