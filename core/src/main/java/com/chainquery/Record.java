@@ -1,3 +1,5 @@
+package com.chainquery;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Method;
@@ -34,7 +36,7 @@ public class Record implements InvocationHandler {
                 String label = name.substring(3);
                 return fields.put(label, arguments[0]);
             } else {
-                throw new UnsupportedOperationException("Cannot handle wildcard non-getter/non-setter: " + method);
+                throw new UnsupportedOperationException("Cannot handle alias non-getter/non-setter: " + method);
             }
         } else if(Object.class.equals(origin)) {
             String name = method.getName();
@@ -50,7 +52,7 @@ public class Record implements InvocationHandler {
                 return method.invoke(this, arguments);
             }
         } else {
-            throw new UnsupportedOperationException("Cannot handle wildcard method: " + method);
+            throw new UnsupportedOperationException("Cannot handle alias method: " + method);
         }
     }
 }

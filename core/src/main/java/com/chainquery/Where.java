@@ -1,5 +1,7 @@
+package com.chainquery;
+
 /*
-Person person = database.wildcard(Person.class);
+Person person = database.alias(Person.class);
 database.select(person).where(
     has(person.getName()).equalTo("Hansen"), 
     has(person.getAge()).greaterOrEqualTo(21),
@@ -175,7 +177,7 @@ public class Where {
             public Void right(Void _, Selector selector) {
                 //builder.append(selector.getTableName()); TODO
                 //builder.append("@");
-                builder.append(selector.getWildcardName());
+                builder.append(selector.getaliasName());
                 builder.append(".");
                 builder.append(selector.getColumnName());
                 return null;
@@ -183,7 +185,7 @@ public class Where {
         });
     }
     
-    // Reads out the getter methods called on wildcards (signalled via thread local side effects),
+    // Reads out the getter methods called on aliases (signalled via thread local side effects),
     // builds up extra constraints for any chaining involved and then builds the final constraint
     // that is either the one-selector or two-selector version of has().
     private static Constraint resolve(
@@ -229,8 +231,8 @@ public class Where {
                     final Selector before = selectors.get(i);
                     final Selector after = selectors.get(i + 1);
                     final Selector selector = new Selector(
-                        after.getWildcard(), 
-                        Magic.uniqueMethod(after.getWildcard().getClass()));
+                        after.getalias(),
+                        Magic.uniqueMethod(after.getalias().getClass()));
                     constraints.add(new Constraint() {
                         public <R, A> R accept(A argument, Visitor<R, A> visitor) {
                             return visitor.has(argument, Either.right(before), Relation.EQUAL, Either.right(selector));
@@ -244,10 +246,10 @@ public class Where {
     
     // TODO: Delete the below
     public static void main(String[] _) {
-        Person person = Wildcard.create(Person.class);
+        Person person = Alias.create(Person.class);
         Constraint constraint = all(
             has(person.getName()).equalTo("Peter"),
-            has(person.getSpouse().getUnique()).equalTo(21.0),
+            has(person.getSpouse().getAge()).equalTo(21.1),
             has(person.getSpouse().getName()).equalTo("Susan")
             );
         System.out.println(constraint);

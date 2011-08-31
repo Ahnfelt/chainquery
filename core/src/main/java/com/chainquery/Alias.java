@@ -1,8 +1,10 @@
+package com.chainquery;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Method;
 
-public class Wildcard implements InvocationHandler {
+public class Alias implements InvocationHandler {
     public static <T extends Row> T create(Class<T> type) {
         return create(type, true);
     }
@@ -12,18 +14,18 @@ public class Wildcard implements InvocationHandler {
         return (T) Proxy.newProxyInstance(
             type.getClassLoader(),
             new Class[] { type },
-            new Wildcard(base));
+            new Alias(base));
     }
     
     private boolean base;
     
-    private Wildcard(boolean base) {
+    private Alias(boolean base) {
         this.base = base;
     }
 
-    // TODO: Every chained call will create a separate wildcard now,
+    // TODO: Every chained call will create a separate alias now,
     //       which might result in a lot of joins, but has the right
-    //       behavior. Consider caching the chained wildcards, but 
+    //       behavior. Consider caching the chained aliases, but
     //       be careful when dealing with collections.
     @SuppressWarnings("unchecked")
     public Object invoke(Object object, Method method, Object[] arguments) throws Throwable {
@@ -44,12 +46,12 @@ public class Wildcard implements InvocationHandler {
                     return getDefaultValue(result);
                 }
             } else {
-                throw new UnsupportedOperationException("Cannot handle wildcard non-getter: " + method);
+                throw new UnsupportedOperationException("Cannot handle alias non-getter: " + method);
             }
         } else if(Object.class.equals(origin)) {
             return method.invoke(this, arguments);
         } else {
-            throw new UnsupportedOperationException("Cannot handle wildcard method: " + method);
+            throw new UnsupportedOperationException("Cannot handle alias method: " + method);
         }
     }
 

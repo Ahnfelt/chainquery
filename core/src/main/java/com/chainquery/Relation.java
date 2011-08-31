@@ -1,3 +1,5 @@
+package com.chainquery;
+
 public enum Relation {
     EQUAL, NOT_EQUAL, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL;
     public String toString() {

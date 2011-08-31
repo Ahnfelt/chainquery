@@ -1,3 +1,5 @@
+package com.chainquery;
+
 /** This holds one of two types of objects (the "left" one or the "right" one). */
 public abstract class Either<L, R> {
     public abstract <O, A> O accept(A argument, Visitor<L, R, O, A> visitor);
