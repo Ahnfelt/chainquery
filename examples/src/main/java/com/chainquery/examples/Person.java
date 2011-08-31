@@ -1,9 +1,11 @@
 package com.chainquery.examples;
 
+import com.chainquery.Row;
+
 import java.util.List;
 import java.util.Set;
 
-public interface Person {
+public interface Person extends Row {
 
     public String getName();
     public void setName(String name);
