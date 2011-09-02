@@ -27,13 +27,13 @@ public class Selector {
     }
     
     /** The name of the alias (unique within a thread). */
-    public String getaliasName() {
+    public String getAliasName() {
         // NOTE: This must not be cached as it differs between threads
         return Magic.threadLocal().aliasName(alias);
     }
 
     /** The alias that was used (rarely needed). */
-    public Row getalias() {
+    public Row getAlias() {
         return alias;
     }
     

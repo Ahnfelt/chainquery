@@ -5,8 +5,26 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Method;
 
 public class Alias implements InvocationHandler {
+
+    private boolean base;
+    private final Class<? extends Row> type;
+
+    private Alias(boolean base, Class<? extends Row> type) {
+        this.base = base;
+        this.type = type;
+    }
+
     public static <T extends Row> T create(Class<T> type) {
         return create(type, true);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Row> Class<T> getType(T alias) {
+        return (Class<T>) alias.type();
+    }
+
+    public static <R extends Row> boolean isAlias(R row) {
+        return Proxy.getInvocationHandler(row).getClass().equals(Alias.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -14,13 +32,7 @@ public class Alias implements InvocationHandler {
         return (T) Proxy.newProxyInstance(
             type.getClassLoader(),
             new Class[] { type },
-            new Alias(base));
-    }
-    
-    private boolean base;
-    
-    private Alias(boolean base) {
-        this.base = base;
+            new Alias(base, type));
     }
 
     // TODO: Every chained call will create a separate alias now,
@@ -32,6 +44,7 @@ public class Alias implements InvocationHandler {
         Class origin = method.getDeclaringClass();
         if(Row.class.isAssignableFrom(origin)) {
             String name = method.getName();
+            if (name.equals("type")) return type;
             if(name.startsWith("get") && (arguments == null || arguments.length == 0)) {
                 Selector selector = new Selector((Row) object, method);
                 if(base) {
@@ -43,7 +56,7 @@ public class Alias implements InvocationHandler {
                 if(Row.class.isAssignableFrom(result)) {
                     return create(result, false);
                 } else {
-                    return getDefaultValue(result);
+                    return Types.getDefaultValue(result);
                 }
             } else {
                 throw new UnsupportedOperationException("Cannot handle alias non-getter: " + method);
@@ -52,36 +65,6 @@ public class Alias implements InvocationHandler {
             return method.invoke(this, arguments);
         } else {
             throw new UnsupportedOperationException("Cannot handle alias method: " + method);
-        }
-    }
-
-
-    // Thanks to Jack Leow on Stackoverflow for suggesting the following:
-    private static boolean DEFAULT_BOOLEAN;
-    private static byte DEFAULT_BYTE;
-    private static short DEFAULT_SHORT;
-    private static int DEFAULT_INT;
-    private static long DEFAULT_LONG;
-    private static float DEFAULT_FLOAT;
-    private static double DEFAULT_DOUBLE;
-
-    public static Object getDefaultValue(Class type) {
-        if(type.equals(boolean.class)) {
-            return DEFAULT_BOOLEAN;
-        } else if(type.equals(byte.class)) {
-            return DEFAULT_BYTE;
-        } else if(type.equals(short.class)) {
-            return DEFAULT_SHORT;
-        } else if(type.equals(int.class)) {
-            return DEFAULT_INT;
-        } else if(type.equals(long.class)) {
-            return DEFAULT_LONG;
-        } else if(type.equals(float.class)) {
-            return DEFAULT_FLOAT;
-        } else if(type.equals(double.class)) {
-            return DEFAULT_DOUBLE;
-        } else {
-            return null;
         }
     }
 }

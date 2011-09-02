@@ -3,25 +3,45 @@ package com.chainquery;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class Record implements InvocationHandler {
+
+    private Class type;
+    private Map<String, Object> fields = new HashMap<String, Object>();
+
+    // No instantiation elsewhere
+    private Record(Class type) {
+        this.type = type;
+        fields.put("Unique", UUID.randomUUID().toString());
+    }
+
+    private static Record getRecord(Row row) {
+        final InvocationHandler invocationHandler = Proxy.getInvocationHandler(row);
+        if (!invocationHandler.getClass().equals(Record.class)) {
+            if (Alias.isAlias(row)) throw new RuntimeException("The given row is an alias");
+            else throw new RuntimeException("The given row is not a proper Row instance");
+        }
+        return (Record) invocationHandler;
+    }
+
+    public static <R extends Row> Map<String, Object> getFields(R row) {
+        return Collections.unmodifiableMap(getRecord(row).fields);
+    }
+
+    public static <R extends Row> void setFields(R row, Map<String, Object> fields) {
+        getRecord(row).fields = fields;
+    }
+
     @SuppressWarnings("unchecked")
-    private static <T extends Row> T create(Class<T> type) {
+    public static <T extends Row> T create(Class<T> type) {
         return (T) Proxy.newProxyInstance(
             type.getClassLoader(),
             new Class[] { type },
             new Record(type));
-    }
-    
-    private Class type;
-    private Map<String, Object> fields = new HashMap<String, Object>();
-    
-    private Record(Class type) {
-        this.type = type;
-        fields.put("Unique", UUID.randomUUID().toString());
     }
 
     @SuppressWarnings("unchecked")
@@ -29,7 +49,8 @@ public class Record implements InvocationHandler {
         Class origin = method.getDeclaringClass();
         if(Row.class.isAssignableFrom(origin)) {
             String name = method.getName();
-            if(name.startsWith("get") && arguments.length == 0) {
+            if (name.equals("type")) return type;
+            if(name.startsWith("get") && (arguments == null || arguments.length == 0)) {
                 String label = name.substring(3);
                 return fields.get(label);
             } else if(name.startsWith("set") && arguments.length == 1) {

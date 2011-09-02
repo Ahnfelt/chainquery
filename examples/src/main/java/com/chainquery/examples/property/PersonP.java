@@ -1,4 +1,4 @@
-package com.chainquery.examples;
+package com.chainquery.examples.property;
 
 import java.util.List;
 import java.util.Set;

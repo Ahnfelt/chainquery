@@ -13,10 +13,12 @@ public interface Person extends Row {
     public Integer getAge();
     public void setAge(Integer age);
 
+    public Person getSpouse();
+    public void setSpouse(Person spouse);
+
     public List<Person> getChildren();
     public void setChildren(List<Person> children);
 
     public Set<Person> getFriends();
     public void setFriends(Set<Person> friends);
-
 }

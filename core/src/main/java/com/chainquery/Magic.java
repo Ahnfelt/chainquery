@@ -11,7 +11,19 @@ import java.util.Collections;
     via thread local side effects. It depends heavily on the Java order of 
     evaluation guarantee (left before right, inner before outer). */
 public class Magic {
+
     private List<Selector> selectors = new ArrayList<Selector>();
+    private Map<Row, String> aliasNames = new WeakHashMap<Row, String>();
+    private long aliasCounter = 0;
+
+    // No instantiation elsewhere
+    private Magic() {}
+
+    private static ThreadLocal<Magic> threadLocalMagic = new ThreadLocal<Magic>() {
+        protected Magic initialValue() {
+            return new Magic();
+        }
+    };
 
     public static Magic threadLocal() {
         return threadLocalMagic.get();
@@ -58,16 +70,5 @@ public class Magic {
             throw new IllegalArgumentException("Row classes should always have a getUnique() method.");
         }
     }
-    
-    private Magic() {}
-    
-    private Map<Row, String> aliasNames = new WeakHashMap<Row, String>();
-    private long aliasCounter = 0;
-    
-    private static ThreadLocal<Magic> threadLocalMagic = new ThreadLocal<Magic>() {
-        protected Magic initialValue() {
-            return new Magic();
-        }
-    };
 }
 

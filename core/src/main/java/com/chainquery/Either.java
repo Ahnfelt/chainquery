@@ -1,25 +1,25 @@
 package com.chainquery;
 
 /** This holds one of two types of objects (the "left" one or the "right" one). */
-public abstract class Either<L, R> {
-    public abstract <O, A> O accept(A argument, Visitor<L, R, O, A> visitor);
+public abstract class Either<Left, Right> {
+    public abstract <Return, Argument> Return accept(Argument argument, Visitor<Left, Right, Return, Argument> visitor);
 
-    public interface Visitor<L, R, O, A> {
-        public O left(A argument, L value);
-        public O right(A argument, R value);
+    public interface Visitor<Left, Right, Return, Argument> {
+        public Return left(Argument argument, Left value);
+        public Return right(Argument argument, Right value);
     }
 
-    public static <L, R> Either<L, R> left(final L value) {
-        return new Either<L, R>() {
-            public <O, A> O accept(A argument, Visitor<L, R, O, A> visitor) {
+    public static <Left, Right> Either<Left, Right> left(final Left value) {
+        return new Either<Left, Right>() {
+            public <Return, Argument> Return accept(Argument argument, Visitor<Left, Right, Return, Argument> visitor) {
                 return visitor.left(argument, value);
             }
         };
     }
     
-    public static <L, R> Either<L, R> right(final R value) {
-        return new Either<L, R>() {
-            public <O, A> O accept(A argument, Visitor<L, R, O, A> visitor) {
+    public static <Left, Right> Either<Left, Right> right(final Right value) {
+        return new Either<Left, Right>() {
+            public <Return, Argument> Return accept(Argument argument, Visitor<Left, Right, Return, Argument> visitor) {
                 return visitor.right(argument, value);
             }
         };

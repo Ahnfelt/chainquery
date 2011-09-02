@@ -1,21 +1,24 @@
 package com.chainquery;
 
-/*
-Person person = database.alias(Person.class);
-database.select(person).where(
-    has(person.getName()).equalTo("Hansen"), 
-    has(person.getAge()).greaterOrEqualTo(21),
-    has(person.getFirstChild().getAge()).greaterThan(21),
-    has(person.getChildren().any().getAge()).greaterThan(21)
-    ).list();
-*/
-
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/** Constraints for the where clause and static methods to generate them. */
-public class Where {
+/** Constraints for where and having clauses and static methods to generate them.
+    Constraints are defined solely based on their accept method implementation
+    and can only be inspected by a visitor.
+    The accept method is parameterized with the return and argument types,
+    and the argument is passed to the visitor methods as the first argument. */
+public abstract class Constraint {
+
+    public abstract <R, A> R accept(A argument, Visitor<R, A> visitor);
+
+    public String toString() {
+        return prettyConstraint(this);
+    }
+
+    public static final int ANY = 0;
+    public static final int ALL = 1;
 
     /** Requires all of the listed constraints to be fulfilled. */
     public static Constraint all(final Constraint... constraints) {
@@ -44,6 +47,10 @@ public class Where {
     /** Creates (part of) a relation constraint (==, >, <, etc.). */
     public static Completion<String> has(final String value) {
         return new Completion<String>(value);
+    }
+
+    public static Completion<Integer> has(final Integer value) {
+        return new Completion<Integer>(value);
     }
 
     public static Completion<Double> has(final Double value) {
@@ -95,23 +102,12 @@ public class Where {
         }
     }
     
-
-    /** A constraint for the where clause. Can only be inspected by a visitor.
-        The accept method is parameterized with the return and argument types,
-        and the argument is passed to the visitor methods as the first argument. */
-    public static abstract class Constraint {
-        public abstract <R, A> R accept(A argument, Visitor<R, A> visitor);
-        public String toString() {
-            return prettyConstraint(this);
-        }
-    }
-    
-    /** A visitor for where clause constraints. It's parameterized with the return 
+    /** A visitor for where clause constraints. It's parameterized with the return
         and argument types, so that it can be used to recursively visit the tree. */
-    public interface Visitor<R, A> {
+    public static interface Visitor<R, A> {
         public R all(A argument, List<Constraint> constraints);
         public R any(A argument, List<Constraint> constraints);
-        public R has(A argument, 
+        public R has(A argument,
             Either<Object, Selector> argument1, 
             Relation relation, 
             Either<Object, Selector> argument2);
@@ -177,7 +173,7 @@ public class Where {
             public Void right(Void _, Selector selector) {
                 //builder.append(selector.getTableName()); TODO
                 //builder.append("@");
-                builder.append(selector.getaliasName());
+                builder.append(selector.getAliasName());
                 builder.append(".");
                 builder.append(selector.getColumnName());
                 return null;
@@ -231,8 +227,8 @@ public class Where {
                     final Selector before = selectors.get(i);
                     final Selector after = selectors.get(i + 1);
                     final Selector selector = new Selector(
-                        after.getalias(),
-                        Magic.uniqueMethod(after.getalias().getClass()));
+                        after.getAlias(),
+                        Magic.uniqueMethod(after.getAlias().getClass()));
                     constraints.add(new Constraint() {
                         public <R, A> R accept(A argument, Visitor<R, A> visitor) {
                             return visitor.has(argument, Either.right(before), Relation.EQUAL, Either.right(selector));
@@ -243,22 +239,6 @@ public class Where {
             }
         });
     }
-    
-    // TODO: Delete the below
-    public static void main(String[] _) {
-        Person person = Alias.create(Person.class);
-        Constraint constraint = all(
-            has(person.getName()).equalTo("Peter"),
-            has(person.getSpouse().getAge()).equalTo(21.1),
-            has(person.getSpouse().getName()).equalTo("Susan")
-            );
-        System.out.println(constraint);
-    }
-    
-    public static interface Person extends Row {
-        public String getName();
-        public Double getAge();
-        public Person getSpouse();
-    }
+
 }
 
