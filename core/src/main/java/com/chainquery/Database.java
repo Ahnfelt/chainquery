@@ -68,7 +68,7 @@ public abstract class Database {
 
     public <R extends Row> void save(R row) {
         if (Alias.isAlias(row)) throw new RuntimeException("Trying to save alias object");
-        save(row, Alias.getType(row));
+        save(row, Record.getType(row));
     }
 
     protected abstract <R extends Row> void save(R row, Class<R> type);

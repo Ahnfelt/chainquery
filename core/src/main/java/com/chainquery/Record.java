@@ -19,6 +19,17 @@ public class Record implements InvocationHandler {
         fields.put("Unique", UUID.randomUUID().toString());
     }
 
+    public static boolean isRecord(Object row) {
+        return row != null &&
+                Proxy.isProxyClass(row.getClass()) &&
+                Proxy.getInvocationHandler(row).getClass().equals(Record.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Row> Class<T> getType(T row) {
+        return (Class<T>) row.type();
+    }
+
     private static Record getRecord(Row row) {
         final InvocationHandler invocationHandler = Proxy.getInvocationHandler(row);
         if (!invocationHandler.getClass().equals(Record.class)) {
@@ -67,8 +78,10 @@ public class Record implements InvocationHandler {
                 } else {
                     return fields.get("Unique").equals(((Row) arguments[0]).getUnique());
                 }
-            } else if(name.equals("hashCode") && arguments.length == 0) {
+            } else if(name.equals("hashCode") && (arguments == null || arguments.length == 0)) {
                 return fields.get("Unique").hashCode();
+            } else if(name.equals("toString") && (arguments == null || arguments.length == 0)) {
+                return String.format("%s (Record %s)", type.toString(), fields.get("Unique"));
             } else {
                 return method.invoke(this, arguments);
             }

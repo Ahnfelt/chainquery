@@ -2,6 +2,8 @@ package com.chainquery.examples;
 
 import com.chainquery.*;
 
+import java.util.List;
+
 import static com.chainquery.Constraint.*;
 
 public class PersonQueries {
@@ -19,6 +21,8 @@ public class PersonQueries {
         person.setName("John Corner");
         System.out.println("person.getName() = " + person.getName());
         System.out.println("person.type() = " + person.type());
+
+        databaseTest1();
     }
 
     public static Constraint constraint1() {
@@ -38,5 +42,31 @@ public class PersonQueries {
             has(person.getAge()).greaterOrEqualTo(21),
             has(person.getChildren().get(ANY).getAge()).greaterThan(21)
             ).list();
+    }
+
+    public static void databaseTest1() {
+        Database db = new InMemoryDatabase();
+        Person person = db.alias(Person.class);
+        listPersonsWhere(db, all());
+
+        Person john = Record.create(Person.class);
+        john.setName("John Connor");
+        db.save(john);
+        listPersonsWhere(db, all());
+
+        Person sara = Record.create(Person.class);
+        sara.setName("Sarah Connor");
+        db.save(sara);
+        listPersonsWhere(db, all());
+        listPersonsWhere(db, has(person.getName()).equalTo("Sarah Connor"));
+    }
+
+    private static void listPersonsWhere(Database db, Constraint constraint) {
+        System.out.println("|--------- Persons ---------|");
+        Person person = db.alias(Person.class);
+        final List<Person> list = db.select(person).where(constraint).list();
+        for (Person p: list) {
+            System.out.println(p.getName());
+        }
     }
 }

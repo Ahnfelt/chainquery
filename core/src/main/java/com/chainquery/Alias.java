@@ -42,8 +42,8 @@ public class Alias implements InvocationHandler {
     @SuppressWarnings("unchecked")
     public Object invoke(Object object, Method method, Object[] arguments) throws Throwable {
         Class origin = method.getDeclaringClass();
+        String name = method.getName();
         if(Row.class.isAssignableFrom(origin)) {
-            String name = method.getName();
             if (name.equals("type")) return type;
             if(name.startsWith("get") && (arguments == null || arguments.length == 0)) {
                 Selector selector = new Selector((Row) object, method);
@@ -62,7 +62,11 @@ public class Alias implements InvocationHandler {
                 throw new UnsupportedOperationException("Cannot handle alias non-getter: " + method);
             }
         } else if(Object.class.equals(origin)) {
-            return method.invoke(this, arguments);
+            if(name.equals("toString") && (arguments == null || arguments.length == 0)) {
+                return String.format("%s (Alias)", type.toString());
+            } else {
+                return method.invoke(this, arguments);
+            }
         } else {
             throw new UnsupportedOperationException("Cannot handle alias method: " + method);
         }
